@@ -1,0 +1,11 @@
+web_push_notification.settings:
+  title: 'Settings'
+  route_name: web_push_notification.settings
+  base_route: web_push_notification.settings
+  weight: 0
+
+web_push_notification.test_notification:
+  title: 'Test'
+  route_name: web_push_notification.test_notification
+  base_route: web_push_notification.settings
+  weight: 1

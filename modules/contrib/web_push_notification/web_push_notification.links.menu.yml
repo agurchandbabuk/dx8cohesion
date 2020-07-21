@@ -1,0 +1,11 @@
+web_push_notification.settings:
+  title: 'Web push notification'
+  description: 'Web push notification settings.'
+  route_name: web_push_notification.settings
+  parent: system.admin_config_services
+
+web_push_notification.test_notification:
+  title: 'Test notification'
+  description: 'Send a test notification to subscribed users.'
+  route_name: web_push_notification.test_notification
+  parent: web_push_notification.settings

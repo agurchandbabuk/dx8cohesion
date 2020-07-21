@@ -1,0 +1,14 @@
+name: Web Push Notification
+type: module
+description: Sends browser push notifications to users.
+package: Web services
+# core: 8.x
+configure: web_push_notification.settings
+dependencies:
+  - drupal:views
+
+# Information added by Drupal.org packaging script on 2019-08-13
+version: '8.x-1.0-alpha2'
+core: '8.x'
+project: 'web_push_notification'
+datestamp: 1565682792

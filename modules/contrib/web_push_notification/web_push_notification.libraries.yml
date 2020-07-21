@@ -1,0 +1,8 @@
+register_service_worker:
+  js:
+    js/register_sw.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/jquery.once
+

@@ -1,0 +1,103 @@
+<?php
+
+/**
+ * @file
+ * Module hooks.
+ */
+
+use Drupal\Core\Url;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * Attaches register service worker script on a page.
+ */
+function web_push_notification_page_attachments_alter(array &$attachments) {
+  $config = \Drupal::config('web_push_notification.settings');
+  $public_key = $config->get('public_key');
+  if (empty($public_key)) {
+    return;
+  }
+
+  $url_options = [
+    'absolute' => TRUE,
+  ];
+  $settings = [
+    'publicKey' => $public_key,
+    'serviceWorkerUrl' => Url::fromRoute('web_push_notification.service_worker', [], $url_options)->toString(),
+    'subscribeUrl' => Url::fromRoute('web_push_notification.subscribe', [], $url_options)->toString(),
+  ];
+
+  // Check pages on which service worker should work.
+  $pages = \Drupal::config('web_push_notification.settings')->get('pages');
+  if ($pages) {
+    $show = $config->get('pages_mode');
+    $pages = mb_strtolower($pages);
+    /** @var  \Symfony\Component\HttpFoundation\Request $request */
+    $request = \Drupal::service('request_stack')->getCurrentRequest();
+    $path = \Drupal::service('path.current')->getPath($request);
+    $path = $path === '/' ? $path : rtrim($path, '/');
+    /** @var \Drupal\Core\Path\AliasManager $alias_manager */
+    $alias_manager = \Drupal::service('path.alias_manager');
+    $path_alias = mb_strtolower($alias_manager->getAliasByPath($path));
+    /** @var \Drupal\Core\Path\PathMatcher $path_matcher */
+    $path_matcher = \Drupal::service('path.matcher');
+    $is_matched = $path_matcher->matchPath($path_alias, $pages) ||
+      $path_matcher->matchPath($path, $pages);
+    if ($is_matched) {
+      if ($show == 'hide') {
+        return;
+      }
+    }
+    else {
+      if ($show == 'show') {
+        return;
+      }
+    }
+  }
+
+  $attachments['#attached']['drupalSettings']['webPushNotification'] = $settings;
+  $attachments['#attached']['library'][] = 'web_push_notification/register_service_worker';
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * Send a notification when a new content is inserted (the content type
+ * should be enabled in the module settings).
+ */
+function web_push_notification_entity_insert(EntityInterface $entity) {
+  $bundles = \Drupal::config('web_push_notification.settings')->get('bundles');
+  $bundle = $entity->bundle();
+  if (isset($bundles[$bundle]) && $bundles[$bundle]) {
+    /** @var \Drupal\web_push_notification\NotificationQueue $sender */
+    $sender = \Drupal::service('web_push_notification.queue');
+    $sender->start($entity);
+  }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Process a notification queue by cron.
+ */
+function web_push_notification_cron() {
+  $queue = \Drupal::queue('web_push_queue');
+
+  /** @var \Drupal\web_push_notification\Plugin\QueueWorker\WebPushQueueWorker $worker */
+  $worker = Drupal::service('plugin.manager.queue_worker')
+    ->createInstance('web_push_queue');
+
+  // Process queue items during only specified amount of time.
+  $finish = strtotime('+ 5 min');
+  while (time() < $finish && ($item = $queue->claimItem())) {
+    try {
+      $worker->processItem($item->data);
+      $queue->deleteItem($item);
+    }
+    catch (\Exception $e) {
+      watchdog_exception('web_push_notification', $e, $e->getMessage());
+    }
+  }
+}

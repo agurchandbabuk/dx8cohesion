@@ -1,0 +1,36 @@
+{
+  "name": "drupal/web_push_notification",
+  "description": "Sends browser push notifications to users.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://www.drupal.org/project/web_push_notification",
+  "keywords": [
+    "drupal8",
+    "module",
+    "web push",
+    "notifications",
+    "push notifications",
+    "browser push notifications"
+  ],
+  "require": {
+    "php" : "^7.1",
+    "ext-gmp": "*",
+    "ext-curl": "*",
+    "drupal/core": "^8.6.1",
+    "minishlink/web-push": "^5.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.*"
+  },
+  "authors": [
+    {
+      "name": "Oleksii Skorobogatko",
+      "homepage": "https://www.soft-industry.com",
+      "email": "skorobogatko.oleksii@gmail.com"
+    }
+  ],
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/web_push_notification",
+    "source": "https://git.drupalcode.org/project/web_push_notification"
+  }
+}
